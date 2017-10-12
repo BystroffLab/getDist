@@ -10,8 +10,10 @@ def main():
 
     # initialize phosphate arrays
     # each entry: [chain,number]
-    HJPhosphates = []
-    PXPhosphates = []
+    HJPhosphates = [["Z",8],["Y",8]]
+    PXPhosphates = [["W",8],["W",9],["W",19],["W",20],["X",19],["X",18],["X",8]]
+    PXPhosphates += [["X",7],["Z",8],["Z",9],["Z",19],["Z",20],["Y",8]]
+    PXPhosphates += [["Y",9],["Y",19],["Y",20]]
 
     # load 2pfj
     HJStructure = parser.get_structure("2pfj","2pfj.pdb")
@@ -28,6 +30,8 @@ def main():
     writeFile(PXDict)
     writeFile(HJDict,HJOut)
     writeFile(PXDict,PXOut)
+    HJOut.close()
+    PXOut.close()
         
 def getPDistances(phosphateList,structure):
     '''Given a list of phosphates in the form of [chain,res#],outputs a 
@@ -36,23 +40,23 @@ def getPDistances(phosphateList,structure):
     outputDict = {}
     for phos1 in phosphateList:
         for phos2 in phosphateList:
+            if phos2 == phos1:
+                continue
             [chain1,res1] = phos1
             [chain2,res2] = phos2
             p1 = structure[0][chain1][res1]["P"]
             p2 = structure[0][chain2][res2]["P"]
             dist = p1 - p2
-            outputDict[(phos1,phos2)] = dist
+            key = "%s_%i-%s_%i"%(chain1,res1,chain2,res2)
+            outputDict[key] = dist
     return outputDict
 
 def writeFile(distDict,outStream=sys.stdout):
     '''Outputs distDict as a text file'''
     keys = sorted(distDict.keys())
-    for (phos1,phos2) in keys:
-        [chain1,res1] = phos1
-        [chain2,res2] = phos2
-        outStream.write("%s_%i-%s_%i: "%(chain1,res1,chain2,res2))
-        outStream.write(distDict[(phos1,phos2)])
+    for key in keys:
+        outStream.write("%s: "%(key))
+        outStream.write(str(distDict[key]))
         outStream.write("\n")
-    outStream.close()
 
 if __name__ == "__main__": main()        
